@@ -441,14 +441,17 @@
   // ── CATEGORIAS ──
   async function loadCats(){
     try{
-      const{db,doc,getDoc}=window._fb;
+      const{db,doc,getDoc,setDoc}=window._fb;
       const snap=await getDoc(doc(db,'config','categorias'));
-      cats=snap.exists()?snap.data().list||[]:[];
-      if(!cats.length){
+      if(snap.exists()&&snap.data().list&&snap.data().list.length){
+        cats=snap.data().list;
+      } else {
+        // Primeira vez — salva as categorias padrão no Firestore
         cats=[{slug:'identidade',nome:'Identidade Visual'},{slug:'ilustracao',nome:'Ilustração'},{slug:'design',nome:'Design Gráfico'}];
+        await setDoc(doc(db,'config','categorias'),{list:cats});
       }
       renderCats();
-    }catch(e){console.error(e);}
+    }catch(e){console.error('loadCats:',e);}
   }
 
   function renderCats(){
