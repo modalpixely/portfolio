@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modalpixely — Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDcXfo9VkkVPr1dvenQGuYFeSkSu4g9odM",
+      authDomain: "portfolio-fbdaf.firebaseapp.com",
+      projectId: "portfolio-fbdaf",
+      storageBucket: "portfolio-fbdaf.firebasestorage.app",
+      messagingSenderId: "784587975264",
+      appId: "1:784587975264:web:98e2ee23e451c853e53105"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    window._db = db; window._getDocs = getDocs; window._collection = collection; window._query = query; window._orderBy = orderBy;
+    document.dispatchEvent(new CustomEvent('fbready'));
+  </script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#1c1c1c;--surface:#242424;--surface2:#2c2c2c;--border:rgba(255,255,255,0.05);--border2:rgba(255,255,255,0.1);--text:#dcdcdc;--text2:#888;--text3:#555;--gold:#b8a898;--gold2:#d4c8bc;--gold-bg:rgba(184,168,152,0.07);--font-display:'Playfair Display',serif;--font-ui:'DM Sans',sans-serif}
+    html{scroll-behavior:smooth}
+    body{font-family:var(--font-ui);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.25}
+
+    .header{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.25rem 2.5rem;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(28,28,28,.96),transparent);backdrop-filter:blur(10px);border-bottom:.5px solid var(--border)}
+    .logo{font-family:var(--font-display);font-size:1.3rem;font-weight:400;letter-spacing:.05em;color:var(--text)}
+    .logo em{font-style:italic;color:var(--gold)}
+    .nav{display:flex;align-items:center;gap:2rem}
+    .nav-link{font-size:11px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:var(--text2);text-decoration:none;cursor:pointer;transition:color .2s;background:none;border:none}
+    .nav-link:hover{color:var(--gold)}
+    .lang-sel{display:flex;gap:3px;border:.5px solid var(--border2);border-radius:20px;padding:3px}
+    .lang-btn{font-size:10px;font-weight:600;padding:4px 8px;border-radius:16px;border:none;background:none;color:var(--text3);cursor:pointer;transition:all .2s}
+    .lang-btn.active{background:var(--gold);color:#1c1c1c}
+    .lang-btn:hover:not(.active){color:var(--text2)}
+
+    .hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:6rem 2rem 4rem}
+    .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(184,168,152,.04) 0%,transparent 70%)}
+    .hero-line{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:1px;height:60%;background:linear-gradient(to bottom,transparent,var(--gold),transparent);opacity:.08}
+    .hero-content{text-align:center;position:relative;z-index:1;animation:fadeUp 1s ease forwards}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    .hero-eyebrow{font-size:10px;font-weight:600;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);margin-bottom:1.5rem}
+    .hero-title{font-family:var(--font-display);font-size:clamp(3rem,8vw,6rem);font-weight:400;line-height:1.05;color:var(--text);margin-bottom:1.5rem}
+    .hero-title em{font-style:italic;color:var(--gold2)}
+    .hero-sub{font-family:var(--font-display);font-size:1rem;font-style:italic;color:var(--text2);max-width:380px;margin:0 auto 3rem;line-height:1.8}
+    .hero-cta{display:inline-flex;align-items:center;gap:10px;font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);border:.5px solid rgba(184,168,152,.3);padding:13px 30px;cursor:pointer;background:none;transition:all .3s;text-decoration:none}
+    .hero-cta:hover{background:var(--gold-bg);border-color:var(--gold)}
+    .hero-cta::after{content:'↓'}
+    .hero-scroll{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--text3);font-size:10px;letter-spacing:.2em;text-transform:uppercase;animation:bounce 2s infinite}
+    @keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
+    .scroll-line{width:1px;height:36px;background:linear-gradient(to bottom,var(--gold),transparent)}
+
+    .section{padding:4rem 2.5rem;max-width:1400px;margin:0 auto}
+    .section-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:2.5rem;padding-bottom:1.5rem;border-bottom:.5px solid var(--border);flex-wrap:wrap;gap:1rem}
+    .section-title{font-family:var(--font-display);font-size:2.2rem;font-weight:400}
+    .section-title em{font-style:italic;color:var(--gold)}
+    .filter-tabs{display:flex;gap:5px;flex-wrap:wrap}
+    .filter-tab{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:7px 15px;border:.5px solid var(--border2);background:none;color:var(--text2);cursor:pointer;transition:all .2s}
+    .filter-tab:hover{color:var(--text);border-color:rgba(255,255,255,.2)}
+    .filter-tab.active{background:var(--gold);color:#1c1c1c;border-color:var(--gold)}
+
+    .carousel-wrap{position:relative;overflow:hidden;margin-bottom:3rem;background:var(--surface);border:.5px solid var(--border)}
+    .carousel-track{display:flex;transition:transform .6s cubic-bezier(.4,0,.2,1)}
+    .carousel-slide{min-width:100%;aspect-ratio:16/7;overflow:hidden;position:relative}
+    .carousel-slide img{width:100%;height:100%;object-fit:cover;transition:transform .8s ease}
+    .carousel-slide:hover img{transform:scale(1.02)}
+    .carousel-slide-info{position:absolute;bottom:0;left:0;right:0;padding:2rem 2.5rem;background:linear-gradient(to top,rgba(0,0,0,.8),transparent)}
+    .carousel-slide-cat{font-size:10px;font-weight:600;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+    .carousel-slide-title{font-family:var(--font-display);font-size:1.6rem;font-weight:400;color:#fff}
+    .carousel-controls{position:absolute;bottom:1.5rem;right:2rem;display:flex;gap:8px;z-index:2}
+    .carousel-btn{width:34px;height:34px;border-radius:50%;border:.5px solid rgba(255,255,255,.15);background:rgba(0,0,0,.4);color:#fff;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s;backdrop-filter:blur(4px)}
+    .carousel-btn:hover{border-color:var(--gold);color:var(--gold)}
+    .carousel-dots{position:absolute;bottom:1.75rem;left:50%;transform:translateX(-50%);display:flex;gap:6px}
+    .carousel-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;transition:all .2s}
+    .carousel-dot.active{background:var(--gold);width:18px;border-radius:3px}
+
+    .grid{columns:3;column-gap:10px}
+    @media(max-width:900px){.grid{columns:2}}
+    @media(max-width:600px){.grid{columns:1}}
+    .grid-item{break-inside:avoid;margin-bottom:10px;position:relative;overflow:hidden;cursor:pointer;background:var(--surface);border:.5px solid var(--border);animation:fadeIn .4s ease forwards}
+    @keyframes fadeIn{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+    .grid-item img{width:100%;display:block;transition:transform .5s ease}
+    .grid-item:hover img{transform:scale(1.04)}
+    .grid-item-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.75) 0%,transparent 55%);opacity:0;transition:opacity .3s;display:flex;flex-direction:column;justify-content:flex-end;padding:1.25rem}
+    .grid-item:hover .grid-item-overlay{opacity:1}
+    .grid-item-cat{font-size:9px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+    .grid-item-title{font-family:var(--font-display);font-size:1rem;font-weight:400;color:#fff}
+    .grid-empty{text-align:center;padding:5rem 0;color:var(--text3);font-family:var(--font-display);font-size:1.1rem;font-style:italic}
+
+    .lightbox{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.95);align-items:center;justify-content:center;padding:2rem}
+    .lightbox.open{display:flex}
+    .lightbox-img{max-width:90vw;max-height:85vh;object-fit:contain;animation:fadeIn .3s ease}
+    .lightbox-close{position:absolute;top:1.5rem;right:2rem;font-size:1.4rem;color:var(--text2);cursor:pointer;background:none;border:none;transition:color .2s}
+    .lightbox-close:hover{color:var(--gold)}
+    .lightbox-info{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);text-align:center}
+    .lightbox-title{font-family:var(--font-display);font-size:1.1rem;font-weight:400;color:var(--text)}
+    .lightbox-cat{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-top:4px}
+    .loading{text-align:center;padding:4rem 0;color:var(--text3);font-family:var(--font-display);font-style:italic;font-size:1rem}
+
+    @media(max-width:768px){.header{padding:1rem 1.25rem}.nav{display:none}.section{padding:3rem 1.25rem}}
+  </style>
+</head>
+<body>
+<header class="header">
+  <div class="logo">Modal<em>pixely</em></div>
+  <nav class="nav">
+    <a class="nav-link" onclick="scrollToWork()" data-i18n="nav.work">Trabalhos</a>
+  </nav>
+  <div class="lang-sel">
+    <button class="lang-btn active" onclick="setLang('pt')">PT</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('es')">ES</button>
+    <button class="lang-btn" onclick="setLang('it')">IT</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-bg"></div><div class="hero-line"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow" data-i18n="hero.eyebrow">Design & Arte Visual</div>
+    <h1 class="hero-title" data-i18n-html="hero.title">Criando<br><em>experiências</em><br>visuais</h1>
+    <p class="hero-sub" data-i18n="hero.sub">Identidade visual, ilustração e design gráfico com propósito e sofisticação.</p>
+    <a class="hero-cta" onclick="scrollToWork()" data-i18n="hero.cta">Ver portfólio</a>
+  </div>
+  <div class="hero-scroll"><div class="scroll-line"></div><span data-i18n="hero.scroll">scroll</span></div>
+</section>
+
+<section class="section" id="works">
+  <div class="section-header">
+    <h2 class="section-title" data-i18n-html="section.works">Trabalhos <em>selecionados</em></h2>
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-cat="all" onclick="filterGallery('all')" data-i18n="filter.all">Todos</button>
+      <button class="filter-tab" data-cat="identidade" onclick="filterGallery('identidade')" data-i18n="filter.id">Identidade Visual</button>
+      <button class="filter-tab" data-cat="ilustracao" onclick="filterGallery('ilustracao')" data-i18n="filter.ilu">Ilustração</button>
+      <button class="filter-tab" data-cat="design" onclick="filterGallery('design')" data-i18n="filter.design">Design Gráfico</button>
+    </div>
+  </div>
+  <div class="carousel-wrap" id="carousel-wrap" style="display:none">
+    <div class="carousel-track" id="carousel-track"></div>
+    <div class="carousel-dots" id="carousel-dots"></div>
+    <div class="carousel-controls">
+      <button class="carousel-btn" onclick="carouselPrev()">&#8592;</button>
+      <button class="carousel-btn" onclick="carouselNext()">&#8594;</button>
+    </div>
+  </div>
+  <div class="grid" id="gallery-grid"><div class="loading" data-i18n="loading">Carregando obras...</div></div>
+</section>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+  <div class="lightbox-info">
+    <div class="lightbox-title" id="lightbox-title"></div>
+    <div class="lightbox-cat" id="lightbox-cat"></div>
+  </div>
+</div>
+
+<script>
+  const L={pt:{'nav.work':'Trabalhos','hero.eyebrow':'Design & Arte Visual','hero.title':'Criando<br><em>experiências</em><br>visuais','hero.sub':'Identidade visual, ilustração e design gráfico com propósito e sofisticação.','hero.cta':'Ver portfólio','hero.scroll':'scroll','section.works':'Trabalhos <em>selecionados</em>','filter.all':'Todos','filter.id':'Identidade Visual','filter.ilu':'Ilustração','filter.design':'Design Gráfico','loading':'Carregando obras...','cat.identidade':'Identidade Visual','cat.ilustracao':'Ilustração','cat.design':'Design Gráfico','empty':'Nenhuma obra encontrada nesta categoria.'},en:{'nav.work':'Works','hero.eyebrow':'Design & Visual Art','hero.title':'Creating<br><em>visual</em><br>experiences','hero.sub':'Visual identity, illustration and graphic design with purpose and sophistication.','hero.cta':'View portfolio','hero.scroll':'scroll','section.works':'Selected <em>works</em>','filter.all':'All','filter.id':'Visual Identity','filter.ilu':'Illustration','filter.design':'Graphic Design','loading':'Loading works...','cat.identidade':'Visual Identity','cat.ilustracao':'Illustration','cat.design':'Graphic Design','empty':'No works found in this category.'},es:{'nav.work':'Trabajos','hero.eyebrow':'Diseño & Arte Visual','hero.title':'Creando<br><em>experiencias</em><br>visuales','hero.sub':'Identidad visual, ilustración y diseño gráfico.','hero.cta':'Ver portafolio','hero.scroll':'scroll','section.works':'Trabajos <em>seleccionados</em>','filter.all':'Todos','filter.id':'Identidad Visual','filter.ilu':'Ilustración','filter.design':'Diseño Gráfico','loading':'Cargando...','cat.identidade':'Identidad Visual','cat.ilustracao':'Ilustración','cat.design':'Diseño Gráfico','empty':'No se encontraron obras.'},it:{'nav.work':'Lavori','hero.eyebrow':'Design & Arte Visiva','hero.title':'Creando<br><em>esperienze</em><br>visive','hero.sub':'Identità visiva, illustrazione e design grafico.','hero.cta':'Vedi portfolio','hero.scroll':'scroll','section.works':'Lavori <em>selezionati</em>','filter.all':'Tutti','filter.id':'Identità Visiva','filter.ilu':'Illustrazione','filter.design':'Design Grafico','loading':'Caricamento...','cat.identidade':'Identità Visiva','cat.ilustracao':'Illustrazione','cat.design':'Design Grafico','empty':'Nessuna opera trovata.'}};
+  let lang='pt',works=[],filter='all',ci=0,citems=[],ct=null;
+  function t(k){return L[lang][k]||L.pt[k]||k}
+  function setLang(l){lang=l;document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===l));document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=t(e.dataset.i18n));document.querySelectorAll('[data-i18n-html]').forEach(e=>e.innerHTML=t(e.dataset.i18nHtml));renderGallery(filter)}
+  function scrollToWork(){document.getElementById('works')?.scrollIntoView({behavior:'smooth'})}
+  async function loadWorks(){try{const q=window._query(window._collection(window._db,'works'),window._orderBy('createdAt','desc'));const s=await window._getDocs(q);works=s.docs.map(d=>({id:d.id,...d.data()}));renderGallery('all');renderCarousel()}catch(e){document.getElementById('gallery-grid').innerHTML='<div class="loading">Configure o Firebase para carregar as obras.</div>'}}
+  function filterGallery(cat){filter=cat;document.querySelectorAll('.filter-tab').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderGallery(cat)}
+  function renderGallery(cat){const g=document.getElementById('gallery-grid');const items=cat==='all'?works:works.filter(w=>w.category===cat);if(!items.length){g.innerHTML=`<div class="grid-empty">${t('empty')}</div>`;return}g.innerHTML=items.map(w=>`<div class="grid-item" onclick="openLB('${w.imageUrl}','${eh(w.title)}','${w.category}')"><img src="${w.imageUrl}" alt="${eh(w.title)}" loading="lazy"/><div class="grid-item-overlay"><div class="grid-item-cat">${t('cat.'+w.category)}</div><div class="grid-item-title">${eh(w.title)}</div></div></div>`).join('')}
+  function renderCarousel(){citems=works.filter(w=>w.carousel);const w=document.getElementById('carousel-wrap');if(!citems.length){w.style.display='none';return}w.style.display='block';document.getElementById('carousel-track').innerHTML=citems.map(w=>`<div class="carousel-slide"><img src="${w.imageUrl}" alt="${eh(w.title)}"/><div class="carousel-slide-info"><div class="carousel-slide-cat">${t('cat.'+w.category)}</div><div class="carousel-slide-title">${eh(w.title)}</div></div></div>`).join('');document.getElementById('carousel-dots').innerHTML=citems.map((_,i)=>`<div class="carousel-dot ${i===0?'active':''}" onclick="goSlide(${i})"></div>`).join('');clearInterval(ct);ct=setInterval(carouselNext,5000)}
+  function goSlide(i){ci=i;document.getElementById('carousel-track').style.transform=`translateX(-${i*100}%)`;document.querySelectorAll('.carousel-dot').forEach((d,j)=>d.classList.toggle('active',j===i))}
+  function carouselNext(){goSlide((ci+1)%citems.length)}
+  function carouselPrev(){goSlide((ci-1+citems.length)%citems.length)}
+  function openLB(url,title,cat){document.getElementById('lightbox-img').src=url;document.getElementById('lightbox-title').textContent=title;document.getElementById('lightbox-cat').textContent=t('cat.'+cat);document.getElementById('lightbox').classList.add('open')}
+  function closeLightbox(e){if(!e||e.target.id==='lightbox'||e.target.className==='lightbox-close')document.getElementById('lightbox').classList.remove('open')}
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox({target:{id:'lightbox'}})});
+  function eh(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+  document.addEventListener('fbready',()=>setTimeout(loadWorks,100));
+</script>
+</body>
+</html>
