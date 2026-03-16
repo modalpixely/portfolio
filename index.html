@@ -168,7 +168,7 @@
   function setLang(l){lang=l;document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===l));document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=t(e.dataset.i18n));document.querySelectorAll('[data-i18n-html]').forEach(e=>e.innerHTML=t(e.dataset.i18nHtml));renderGallery(filter)}
   function scrollToWork(){document.getElementById('works')?.scrollIntoView({behavior:'smooth'})}
   async function loadWorks(){try{const q=window._query(window._collection(window._db,'works'),window._orderBy('createdAt','desc'));const s=await window._getDocs(q);works=s.docs.map(d=>({id:d.id,...d.data()}));renderGallery('all');renderCarousel()}catch(e){document.getElementById('gallery-grid').innerHTML='<div class="loading">Configure o Firebase para carregar as obras.</div>'}}
-  function filterGallery(cat){filter=cat;document.querySelectorAll('.filter-tab').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderGallery(cat)}
+  function filterGallery(cat){filter=cat;document.querySelectorAll('#filter-tabs-dynamic .filter-tab').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderGallery(cat)}
   function getCatLabel(slug){
     const cats=window._cats||[];
     const c=cats.find(c=>c.slug===slug);
@@ -205,16 +205,29 @@
   async function loadCats(){
     try{
       const snap=await window._getDoc(window._doc(window._db,'config','categorias'));
-      const cats=snap.exists()?snap.data().list||[]:null;
-      if(cats&&cats.length){
-        const tabs=document.getElementById('filter-tabs-dynamic');
-        if(tabs){
-          tabs.innerHTML='<button class="filter-tab active" data-cat="all" onclick="filterGallery('all')">Todos</button>'+
-            cats.map(c=>`<button class="filter-tab" data-cat="${eh(c.slug)}" onclick="filterGallery('${eh(c.slug)}')">${eh(c.nome)}</button>`).join('');
-        }
-        window._cats=cats;
+      const fetchedCats=snap.exists()?snap.data().list||[]:[];
+      // Se não tiver cats no Firebase, usa as padrão
+      const catsToUse=fetchedCats.length?fetchedCats:[
+        {slug:'identidade',nome:'Identidade Visual'},
+        {slug:'ilustracao',nome:'Ilustração'},
+        {slug:'design',nome:'Design Gráfico'}
+      ];
+      window._cats=catsToUse;
+      // Atualiza os filtros no HTML
+      const tabs=document.getElementById('filter-tabs-dynamic');
+      if(tabs){
+        tabs.innerHTML='<button class="filter-tab active" data-cat="all">Todos</button>'+
+          catsToUse.map(c=>`<button class="filter-tab" data-cat="${c.slug}">${c.nome}</button>`).join('');
+        // Event delegation — um listener só para todos os botões
+        tabs.addEventListener('click',e=>{
+          const btn=e.target.closest('.filter-tab');
+          if(btn) filterGallery(btn.dataset.cat);
+        });
       }
-    }catch(e){console.error(e);}
+    }catch(e){
+      console.error('loadCats erro:',e);
+      window._cats=[];
+    }
   }
 
   document.addEventListener('fbready',()=>setTimeout(async()=>{await loadConfig();await loadCats();await loadWorks();},100));
