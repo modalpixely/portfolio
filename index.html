@@ -29,7 +29,8 @@
     body{font-family:var(--font-ui);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
     body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.25}
 
-    .header{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.25rem 2.5rem;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(28,28,28,.96),transparent);backdrop-filter:blur(10px);border-bottom:.5px solid var(--border)}
+    .header{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.25rem 2.5rem;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);background:linear-gradient(135deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 100%);border-bottom:.5px solid rgba(255,255,255,0.08);box-shadow:0 8px 32px rgba(0,0,0,0.25),inset 0 1px 0 rgba(255,255,255,0.1);transition:background .4s ease}
+    .header::before{content:'';position:absolute;inset:0;background:linear-gradient(105deg,rgba(255,255,255,0.04) 0%,transparent 60%,rgba(255,255,255,0.02) 100%);pointer-events:none;border-radius:inherit}
     .logo{font-family:var(--font-display);font-size:1.3rem;font-weight:400;letter-spacing:.05em;color:var(--text)}
     .logo em{font-style:italic;color:var(--gold)}
     .nav{display:flex;align-items:center;gap:2rem}
@@ -93,17 +94,37 @@
     .grid-item-title{font-family:var(--font-display);font-size:1rem;font-weight:400;color:#fff}
     .grid-empty{text-align:center;padding:5rem 0;color:var(--text3);font-family:var(--font-display);font-size:1.1rem;font-style:italic}
 
-    .lightbox{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.95);align-items:center;justify-content:center;padding:2rem}
+    .lightbox{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:2rem}
     .lightbox.open{display:flex}
-    .lightbox-img{max-width:90vw;max-height:85vh;object-fit:contain;animation:fadeIn .3s ease}
-    .lightbox-close{position:absolute;top:1.5rem;right:2rem;font-size:1.4rem;color:var(--text2);cursor:pointer;background:none;border:none;transition:color .2s}
-    .lightbox-close:hover{color:var(--gold)}
-    .lightbox-info{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);text-align:center}
-    .lightbox-title{font-family:var(--font-display);font-size:1.1rem;font-weight:400;color:var(--text)}
-    .lightbox-cat{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-top:4px}
+    .lightbox-inner{position:relative;display:flex;flex-direction:column;align-items:center;gap:1.25rem}
+    .lightbox-img{max-width:88vw;max-height:80vh;object-fit:contain;animation:fadeIn .35s ease;border-radius:2px;box-shadow:0 32px 80px rgba(0,0,0,.7)}
+    .lightbox-close{position:absolute;top:-1rem;right:-1rem;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:1rem;color:rgba(255,255,255,0.8);cursor:pointer;border:none;border-radius:50%;backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);background:linear-gradient(135deg,rgba(255,255,255,0.15),rgba(255,255,255,0.05));border:.5px solid rgba(255,255,255,0.15);box-shadow:0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,0.2);transition:all .2s}
+    .lightbox-close:hover{background:linear-gradient(135deg,rgba(255,255,255,0.22),rgba(255,255,255,0.08));color:#fff;transform:scale(1.08)}
+    .lightbox-info{text-align:center;backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03));border:.5px solid rgba(255,255,255,0.1);border-radius:2px;padding:.75rem 2rem;box-shadow:0 8px 24px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,0.12)}
+    .lightbox-title{font-family:var(--font-display);font-size:1.05rem;font-weight:400;color:rgba(255,255,255,0.9)}
+    .lightbox-cat{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-top:4px}
     .loading{text-align:center;padding:4rem 0;color:var(--text3);font-family:var(--font-display);font-style:italic;font-size:1rem}
 
     @media(max-width:768px){.header{padding:1rem 1.25rem}.nav{display:none}.section{padding:3rem 1.25rem}}
+
+    /* LIQUID GLASS ORBS — HERO */
+    .lg-orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:0;pointer-events:none}
+    .lg-orb-1{width:520px;height:520px;background:radial-gradient(circle,rgba(184,168,152,0.13) 0%,rgba(184,168,152,0.04) 50%,transparent 70%);top:-10%;left:-8%;animation:orbFloat1 18s ease-in-out infinite}
+    .lg-orb-2{width:420px;height:420px;background:radial-gradient(circle,rgba(212,200,188,0.1) 0%,rgba(184,168,152,0.03) 50%,transparent 70%);bottom:-5%;right:-5%;animation:orbFloat2 22s ease-in-out infinite}
+    .lg-orb-3{width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,transparent 65%);top:35%;left:55%;animation:orbFloat3 16s ease-in-out infinite}
+    @keyframes orbFloat1{0%{opacity:0;transform:translate(0,0) scale(1)}10%{opacity:1}50%{transform:translate(6%,4%) scale(1.08)}100%{opacity:1;transform:translate(0,0) scale(1)}}
+    @keyframes orbFloat2{0%{opacity:0;transform:translate(0,0) scale(1)}10%{opacity:1}40%{transform:translate(-5%,-3%) scale(1.06)}70%{transform:translate(3%,5%) scale(.96)}100%{opacity:1;transform:translate(0,0) scale(1)}}
+    @keyframes orbFloat3{0%{opacity:0;transform:translate(0,0) scale(1)}10%{opacity:1}55%{transform:translate(-4%,6%) scale(1.1)}100%{opacity:1;transform:translate(0,0) scale(1)}}
+
+    /* LIQUID GLASS PILL — HERO */
+    .lg-pill{position:absolute;bottom:6rem;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:.6rem;padding:.55rem 1.4rem;backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);background:linear-gradient(135deg,rgba(255,255,255,0.09) 0%,rgba(255,255,255,0.03) 100%);border:.5px solid rgba(255,255,255,0.12);border-radius:40px;box-shadow:0 8px 32px rgba(0,0,0,0.2),inset 0 1px 0 rgba(255,255,255,0.15);white-space:nowrap;opacity:0;animation:pillFadeIn 1.2s ease 1.2s forwards}
+    .lg-pill-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.8;animation:pulseDot 2.5s ease-in-out infinite}
+    .lg-pill-text{font-size:10px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,0.55)}
+    @keyframes pulseDot{0%,100%{opacity:.8;transform:scale(1)}50%{opacity:1;transform:scale(1.3)}}
+    @keyframes pillFadeIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+    /* LIQUID GLASS — LANG SEL */
+    .lang-sel{display:flex;gap:3px;backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02));border:.5px solid rgba(255,255,255,0.1);border-radius:20px;padding:3px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.12),0 4px 12px rgba(0,0,0,.15)}
   </style>
 </head>
 <body>
@@ -122,6 +143,10 @@
 
 <section class="hero">
   <div class="hero-bg"></div><div class="hero-line"></div>
+  <div class="lg-orb lg-orb-1"></div>
+  <div class="lg-orb lg-orb-2"></div>
+  <div class="lg-orb lg-orb-3"></div>
+  <div class="lg-pill"><span class="lg-pill-dot"></span><span class="lg-pill-text" data-i18n="hero.eyebrow">Design & Arte Visual</span></div>
   <div class="hero-content">
     <div class="hero-eyebrow" data-i18n="hero.eyebrow">Design & Arte Visual</div>
     <h1 class="hero-title" data-i18n-html="hero.title">Criando<br><em>experiências</em><br>visuais</h1>
@@ -153,11 +178,13 @@
 </section>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
-  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-  <img class="lightbox-img" id="lightbox-img" src="" alt="" />
-  <div class="lightbox-info">
-    <div class="lightbox-title" id="lightbox-title"></div>
-    <div class="lightbox-cat" id="lightbox-cat"></div>
+  <div class="lightbox-inner">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="" />
+    <div class="lightbox-info">
+      <div class="lightbox-title" id="lightbox-title"></div>
+      <div class="lightbox-cat" id="lightbox-cat"></div>
+    </div>
   </div>
 </div>
 
