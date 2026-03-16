@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     const firebaseConfig = {
       apiKey: "AIzaSyDcXfo9VkkVPr1dvenQGuYFeSkSu4g9odM",
       authDomain: "portfolio-fbdaf.firebaseapp.com",
@@ -19,7 +19,7 @@
     };
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    window._db = db; window._getDocs = getDocs; window._collection = collection; window._query = query; window._orderBy = orderBy;
+    window._db = db; window._getDocs = getDocs; window._collection = collection; window._query = query; window._orderBy = orderBy; window._doc = doc; window._getDoc = getDoc;
     document.dispatchEvent(new CustomEvent('fbready'));
   </script>
   <style>
@@ -134,7 +134,7 @@
 <section class="section" id="works">
   <div class="section-header">
     <h2 class="section-title" data-i18n-html="section.works">Trabalhos <em>selecionados</em></h2>
-    <div class="filter-tabs">
+    <div class="filter-tabs" id="filter-tabs-dynamic">
       <button class="filter-tab active" data-cat="all" onclick="filterGallery('all')" data-i18n="filter.all">Todos</button>
       <button class="filter-tab" data-cat="identidade" onclick="filterGallery('identidade')" data-i18n="filter.id">Identidade Visual</button>
       <button class="filter-tab" data-cat="ilustracao" onclick="filterGallery('ilustracao')" data-i18n="filter.ilu">Ilustração</button>
@@ -169,7 +169,13 @@
   function scrollToWork(){document.getElementById('works')?.scrollIntoView({behavior:'smooth'})}
   async function loadWorks(){try{const q=window._query(window._collection(window._db,'works'),window._orderBy('createdAt','desc'));const s=await window._getDocs(q);works=s.docs.map(d=>({id:d.id,...d.data()}));renderGallery('all');renderCarousel()}catch(e){document.getElementById('gallery-grid').innerHTML='<div class="loading">Configure o Firebase para carregar as obras.</div>'}}
   function filterGallery(cat){filter=cat;document.querySelectorAll('.filter-tab').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));renderGallery(cat)}
-  function renderGallery(cat){const g=document.getElementById('gallery-grid');const items=cat==='all'?works:works.filter(w=>w.category===cat);if(!items.length){g.innerHTML=`<div class="grid-empty">${t('empty')}</div>`;return}g.innerHTML=items.map(w=>`<div class="grid-item" onclick="openLB('${w.imageUrl}','${eh(w.title)}','${w.category}')"><img src="${w.imageUrl}" alt="${eh(w.title)}" loading="lazy"/><div class="grid-item-overlay"><div class="grid-item-cat">${t('cat.'+w.category)}</div><div class="grid-item-title">${eh(w.title)}</div></div></div>`).join('')}
+  function getCatLabel(slug){
+    const cats=window._cats||[];
+    const c=cats.find(c=>c.slug===slug);
+    if(c)return c.nome;
+    return t('cat.'+slug)||slug;
+  }
+  function renderGallery(cat){const g=document.getElementById('gallery-grid');const items=cat==='all'?works:works.filter(w=>w.category===cat);if(!items.length){g.innerHTML=`<div class="grid-empty">${t('empty')}</div>`;return}g.innerHTML=items.map(w=>`<div class="grid-item" onclick="openLB('${w.imageUrl}','${eh(w.title)}','${w.category}')"><img src="${w.imageUrl}" alt="${eh(w.title)}" loading="lazy"/><div class="grid-item-overlay"><div class="grid-item-cat">${getCatLabel(w.category)}</div><div class="grid-item-title">${eh(w.title)}</div></div></div>`).join('')}
   function renderCarousel(){citems=works.filter(w=>w.carousel);const w=document.getElementById('carousel-wrap');if(!citems.length){w.style.display='none';return}w.style.display='block';document.getElementById('carousel-track').innerHTML=citems.map(w=>`<div class="carousel-slide"><img src="${w.imageUrl}" alt="${eh(w.title)}"/><div class="carousel-slide-info"><div class="carousel-slide-cat">${t('cat.'+w.category)}</div><div class="carousel-slide-title">${eh(w.title)}</div></div></div>`).join('');document.getElementById('carousel-dots').innerHTML=citems.map((_,i)=>`<div class="carousel-dot ${i===0?'active':''}" onclick="goSlide(${i})"></div>`).join('');clearInterval(ct);ct=setInterval(carouselNext,5000)}
   function goSlide(i){ci=i;document.getElementById('carousel-track').style.transform=`translateX(-${i*100}%)`;document.querySelectorAll('.carousel-dot').forEach((d,j)=>d.classList.toggle('active',j===i))}
   function carouselNext(){goSlide((ci+1)%citems.length)}
@@ -178,7 +184,40 @@
   function closeLightbox(e){if(!e||e.target.id==='lightbox'||e.target.className==='lightbox-close')document.getElementById('lightbox').classList.remove('open')}
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeLightbox({target:{id:'lightbox'}})});
   function eh(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-  document.addEventListener('fbready',()=>setTimeout(loadWorks,100));
+  async function loadConfig(){
+    try{
+      const snap=await window._getDoc(window._doc(window._db,'config','site'));
+      const cfg=snap.exists()?snap.data():{};
+      // Logo
+      const l1=cfg.logo1||'Modal', l2=cfg.logo2||'pixely';
+      document.querySelectorAll('.logo').forEach(el=>el.innerHTML=eh(l1)+'<em>'+eh(l2)+'</em>');
+      // Hero
+      if(cfg.eyebrow) document.querySelectorAll('[data-i18n="hero.eyebrow"]').forEach(el=>el.textContent=cfg.eyebrow);
+      if(cfg.title1||cfg.title2||cfg.title3){
+        const t1=cfg.title1||'Criando', t2=cfg.title2||'experiências', t3=cfg.title3||'visuais';
+        document.querySelectorAll('[data-i18n-html="hero.title"]').forEach(el=>el.innerHTML=eh(t1)+'<br><em>'+eh(t2)+'</em><br>'+eh(t3));
+      }
+      if(cfg.sub) document.querySelectorAll('[data-i18n="hero.sub"]').forEach(el=>el.textContent=cfg.sub);
+      if(cfg.cta) document.querySelectorAll('[data-i18n="hero.cta"]').forEach(el=>el.textContent=cfg.cta);
+    }catch(e){console.error('Config erro:',e);}
+  }
+
+  async function loadCats(){
+    try{
+      const snap=await window._getDoc(window._doc(window._db,'config','categorias'));
+      const cats=snap.exists()?snap.data().list||[]:null;
+      if(cats&&cats.length){
+        const tabs=document.getElementById('filter-tabs-dynamic');
+        if(tabs){
+          tabs.innerHTML='<button class="filter-tab active" data-cat="all" onclick="filterGallery('all')">Todos</button>'+
+            cats.map(c=>`<button class="filter-tab" data-cat="${eh(c.slug)}" onclick="filterGallery('${eh(c.slug)}')">${eh(c.nome)}</button>`).join('');
+        }
+        window._cats=cats;
+      }
+    }catch(e){console.error(e);}
+  }
+
+  document.addEventListener('fbready',()=>setTimeout(async()=>{await loadConfig();await loadCats();await loadWorks();},100));
 </script>
 </body>
 </html>
