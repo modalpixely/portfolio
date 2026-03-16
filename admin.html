@@ -216,10 +216,10 @@
     const fd = new FormData();
     fd.append('file', file);
     fd.append('upload_preset', CLOUDINARY_PRESET);
-    fd.append('folder', 'portfolio');
     const res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/image/upload', { method: 'POST', body: fd });
     const data = await res.json();
-    if (!data.secure_url) throw new Error('Cloudinary error');
+    if (data.error) throw new Error(data.error.message);
+    if (!data.secure_url) throw new Error('Sem URL retornada');
     return { url: data.secure_url, publicId: data.public_id };
   }
 
@@ -241,7 +241,7 @@
       try{
         const { url, publicId } = await uploadToCloudinary(f);
         await addDoc(collection(db,'works'),{title,category:cat,imageUrl:url,publicId,featured:dest,carousel,createdAt:Date.now()});
-      }catch(e){showToast('Erro: '+f.name);}
+      }catch(e){showToast('Erro: '+e.message);console.error(e);}
     }
     fill.style.width='100%';txt.textContent='Concluído!';
     setTimeout(()=>{cancelUpload();loadGrid();showToast('✓ Obras salvas!');},700);
